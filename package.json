@@ -1,4 +1,19 @@
 {
+  "name": "sheets-importer",
+  "version": "0.0.1",
+  "description": "An importer that imports from google sheets to FoundryVTT compendiums",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/brrrdy/sheets-importer"
+  },
+  "author": "Cody Zornes",
+  "license": "MIT",
+  "scripts": {
+    "build-ts": "tsc",
+    "build": "npm run build-ts",
+    "start": "npm run app",
+    "app": "node dist/app.js"
+  },
   "devDependencies": {
     "typescript": "^4.3.5"
   }
