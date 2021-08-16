@@ -73,20 +73,38 @@ function getNewToken(oAuth2Client, callback) {
  */
 function listMajors(auth) {
   const sheets = google.sheets({version: 'v4', auth});
-  sheets.spreadsheets.values.get({
-    spreadsheetId: '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms',
-    range: 'Class Data!A2:E',
-  }, (err, res) => {
+  sheets.spreadsheets.values.batchGet({
+    spreadsheetId: '10jSMRIG9nwRppaXE7Hi8VHVRZe8Cd3p2mBN7ZdfJ_RQ',
+    ranges: [
+      'Distinctions!A2:C',
+      'Passions!A2:C' 
+      ]
+    }, (err, res) => {
     if (err) return console.log('The API returned an error: ' + err);
-    const rows = res.data.values;
-    if (rows.length) {
-      console.log('Name, Major:');
-      // Print columns A and E, which correspond to indices 0 and 4.
-      rows.map((row) => {
-        console.log(`${row[0]}, ${row[4]}`);
-      });
-    } else {
-      console.log('No data found.');
-    }
+    const sheetGetResults = res.data.valueRanges;
+
+    for (const sheeter of sheetGetResults) {
+      if (sheeter.values.length) {
+        for (const vals of sheeter.values) {
+          console.log(`=======================`);
+          console.log(`${vals[0]}`);
+          console.log(`---`);
+          console.log(`${vals[1]}`);    
+        }
+      } else {
+        console.log('No data found.');
+      }
+    } 
+
+//     if (rows.length) {
+//       console.log('Name, Flavor Text:');
+//       // Print columns A and E, which correspond to indices 0 and 4.
+//       rows.map((row) => {
+//         console.log(`${row[0]}
+// ----------------------
+// ${row[1]}
+// ======================
+// `);
+//       });
   });
 }
