@@ -5,29 +5,15 @@ import {
   sheets_v4
 } from 'googleapis';
 import { AuthPlus } from 'googleapis-common';
-import { OAuth2Client, OAuth2ClientOptions, TokenInfo } from 'google-auth-library';
+import { OAuth2Client, OAuth2ClientOptions } from 'google-auth-library';
+
+// If modifying these scopes, delete token.json.
+const SCOPES: string[] = ['https://www.googleapis.com/auth/spreadsheets.readonly'];
+const TOKEN_PATH: string = 'token.json';
 
 const sheets: sheets_v4.Sheets = google.sheets('v4');
 const auth: AuthPlus = google.auth;
 
-// If modifying these scopes, delete token.json.
-const SCOPES: string[] = ['https://www.googleapis.com/auth/spreadsheets.readonly'];
-
-
-// NOTE: going to leave this for now but I will probably rework or remove this
-// section of code later instead of typscriptifying it all here 
-
-// The file token.json stores the user's access and refresh tokens, and is
-// created automatically when the authorization flow completes for the first
-// time.
-const TOKEN_PATH: string = 'token.json';
-
-// // Load client secrets from a local file.
-// fs.readFile('credentials.json', (err, content) => {
-//   if (err) return console.log('Error loading client secret file:', err);
-//   // Authorize a client with credentials, then call the Google Sheets API.
-//   //authorize(JSON.parse(content.toString()), getFlavourText);
-// });
 
 
 async function main () {
