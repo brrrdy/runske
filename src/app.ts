@@ -1,18 +1,23 @@
-//const fs = require('fs');
-//const readline = require('readline');
-//const {google} = require('googleapis');
-
 import * as fs from 'fs';
 import * as readline from 'readline';
-import google = require('googleapis');
-const sheets = google.google.sheets('v4');
+import {
+  google,
+  sheets_v4
+} from 'googleapis';
+
+const sheets: sheets_v4.Sheets = google.sheets('v4');
 
 // If modifying these scopes, delete token.json.
-const SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly'];
+const SCOPES: string[] = ['https://www.googleapis.com/auth/spreadsheets.readonly'];
+
+
+// NOTE: going to leave this for now but I will probably rework or remove this
+// section of code later instead of typscriptifying it all now
+
 // The file token.json stores the user's access and refresh tokens, and is
 // created automatically when the authorization flow completes for the first
 // time.
-const TOKEN_PATH = 'token.json';
+const TOKEN_PATH: string = 'token.json';
 
 // Load client secrets from a local file.
 fs.readFile('credentials.json', (err, content) => {
@@ -20,6 +25,32 @@ fs.readFile('credentials.json', (err, content) => {
   // Authorize a client with credentials, then call the Google Sheets API.
   authorize(JSON.parse(content.toString()), getFlavourText);
 });
+
+
+async function main () {
+  const authClient = await getAuthClient();
+  const request: sheets_v4.Params$Resource$Spreadsheets$Values$Batchget = {
+    spreadsheetId: '10jSMRIG9nwRppaXE7Hi8VHVRZe8Cd3p2mBN7ZdfJ_RQ',
+    ranges: [
+      'Distinctions!A2:C',
+      'Passions!A2:C',
+      'Adversities!A2:C',
+      'Anxieties!A2:C'
+    ],
+    auth: authClient,
+  };
+}
+main();
+
+async function getAuthClient() {
+  let authClient = null;
+
+
+  if (authClient == null) {
+    throw Error('Authentication failed');
+  }
+  return authClient;
+}
 
 /**
  * Create an OAuth2 client with the given credentials, and then execute the
@@ -29,7 +60,7 @@ fs.readFile('credentials.json', (err, content) => {
  */
 function authorize(credentials, callback) {
   const {client_secret, client_id, redirect_uris} = credentials.installed;
-  const oAuth2Client = new google.google.auth.OAuth2(
+  const oAuth2Client = new google.auth.OAuth2(
       client_id, client_secret, redirect_uris[0]);
 
   // Check if we have previously stored a token.
