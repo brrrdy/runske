@@ -4,134 +4,120 @@ import {
   google,
   sheets_v4
 } from 'googleapis';
+import { AuthPlus } from 'googleapis-common';
+import { OAuth2Client, OAuth2ClientOptions, TokenInfo } from 'google-auth-library';
 
 const sheets: sheets_v4.Sheets = google.sheets('v4');
+const auth: AuthPlus = google.auth;
 
 // If modifying these scopes, delete token.json.
 const SCOPES: string[] = ['https://www.googleapis.com/auth/spreadsheets.readonly'];
 
 
 // NOTE: going to leave this for now but I will probably rework or remove this
-// section of code later instead of typscriptifying it all now
+// section of code later instead of typscriptifying it all here 
 
 // The file token.json stores the user's access and refresh tokens, and is
 // created automatically when the authorization flow completes for the first
 // time.
 const TOKEN_PATH: string = 'token.json';
 
-// Load client secrets from a local file.
-fs.readFile('credentials.json', (err, content) => {
-  if (err) return console.log('Error loading client secret file:', err);
-  // Authorize a client with credentials, then call the Google Sheets API.
-  authorize(JSON.parse(content.toString()), getFlavourText);
-});
+// // Load client secrets from a local file.
+// fs.readFile('credentials.json', (err, content) => {
+//   if (err) return console.log('Error loading client secret file:', err);
+//   // Authorize a client with credentials, then call the Google Sheets API.
+//   //authorize(JSON.parse(content.toString()), getFlavourText);
+// });
 
 
 async function main () {
-  const authClient = await getAuthClient();
+  // Get a new auth client
+  const authClient = getAuthorizedClient();
+
+  // Build our request
   const request: sheets_v4.Params$Resource$Spreadsheets$Values$Batchget = {
     spreadsheetId: '10jSMRIG9nwRppaXE7Hi8VHVRZe8Cd3p2mBN7ZdfJ_RQ',
     ranges: [
       'Distinctions!A2:C',
       'Passions!A2:C',
       'Adversities!A2:C',
-      'Anxieties!A2:C'
+      'Anxieties!A2:C',
     ],
     auth: authClient,
   };
+
+  // Try to send our request
+  try {
+    const response: sheets_v4.Schema$BatchGetValuesResponse = (await sheets.spreadsheets.values.batchGet(request)).data;
+
+    // do some stuff with the response
+    console.log(response.valueRanges[0].values[0]);
+
+  } catch (err) {
+    console.error(err);
+  }
 }
 main();
 
-async function getAuthClient() {
-  let authClient = null;
+function getAuthorizedClient() {
+  let authOptions: OAuth2ClientOptions = getAuthOptions();
 
-
-  if (authClient == null) {
-    throw Error('Authentication failed');
+  const authClient: OAuth2Client = new auth.OAuth2(
+    authOptions.clientId,
+    authOptions.clientSecret,
+    authOptions.redirectUri,
+  );
+  
+  // Try to get existing token from file
+  let authToken;
+  try {
+    authToken = JSON.parse(fs.readFileSync('token.json').toString());
+  } catch (err) {
+    // Try to get a new token
+    authToken = getNewToken(authClient);
   }
+  
+  authClient.setCredentials(authToken);
+
   return authClient;
 }
 
-/**
- * Create an OAuth2 client with the given credentials, and then execute the
- * given callback function.
- * @param {Object} credentials The authorization client credentials.
- * @param {function} callback The callback to call with the authorized client.
- */
-function authorize(credentials, callback) {
-  const {client_secret, client_id, redirect_uris} = credentials.installed;
-  const oAuth2Client = new google.auth.OAuth2(
-      client_id, client_secret, redirect_uris[0]);
-
-  // Check if we have previously stored a token.
-  fs.readFile(TOKEN_PATH, (err, token) => {
-    if (err) return getNewToken(oAuth2Client, callback);
-    oAuth2Client.setCredentials(JSON.parse(token.toString()));
-    callback(oAuth2Client);
-  });
-}
-
-/**
- * Get and store new token after prompting for user authorization, and then
- * execute the given callback with the authorized OAuth2 client.
- * @param {google.auth.OAuth2} oAuth2Client The OAuth2 client to get token for.
- * @param {getEventsCallback} callback The callback for the authorized client.
- */
-function getNewToken(oAuth2Client, callback) {
-  const authUrl = oAuth2Client.generateAuthUrl({
+function getNewToken(authClient: OAuth2Client) : OAuth2Client {
+  const authUrl: string = authClient.generateAuthUrl({
     access_type: 'offline',
     scope: SCOPES,
   });
-  console.log('Authorize this app by visiting this url:', authUrl);
-  const rl = readline.createInterface({
+  console.log(`Authorize this app by visiting this URL: ${authUrl}`);
+
+  const rl: readline.Interface = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
   });
-  rl.question('Enter the code from that page here: ', (code) => {
+
+  rl.question(`Enter the code from that page: `, (code) => {
     rl.close();
-    oAuth2Client.getToken(code, (err, token) => {
+    authClient.getToken(code, (err, token) => {
       if (err) return console.error('Error while trying to retrieve access token', err);
-      oAuth2Client.setCredentials(token);
-      // Store the token to disk for later program executions
+      authClient.setCredentials(token);
       fs.writeFile(TOKEN_PATH, JSON.stringify(token), (err) => {
         if (err) return console.error(err);
         console.log('Token stored to', TOKEN_PATH);
       });
-      callback(oAuth2Client);
     });
   });
+  return authClient;
 }
 
-/**
- * Prints the flavor text from each sheet in the range
- * @param {google.auth.OAuth2} auth The authenticated Google OAuth client.
- */
-function getFlavourText(auth) {
-  //const sheets = google.sheets({version: 'v4', auth});
-  sheets.spreadsheets.values.batchGet({
-    spreadsheetId: '10jSMRIG9nwRppaXE7Hi8VHVRZe8Cd3p2mBN7ZdfJ_RQ',
-    ranges: [
-      'Distinctions!A2:C',
-      'Passions!A2:C',
-      'Adversities!A2:C',
-      'Anxieties!A2:C'
-      ],
-    auth: auth
-    }, (err, res) => {
-    if (err) return console.log('The API returned an error: ' + err);
-    const sheetGetResults = res.data.valueRanges;
-
-    for (const sheeter of sheetGetResults) {
-      if (sheeter.values.length) {
-        for (const vals of sheeter.values) {
-          console.log(`=======================`);
-          console.log(`${vals[0]}`);
-          console.log(`---`);
-          console.log(`${vals[1]}`);    
-        }
-      } else {
-        console.log('No data found.');
-      }
-    } 
-  });
+function getAuthOptions() {
+  let credentials;
+  try {
+    credentials = JSON.parse(fs.readFileSync('credentials.json').toString());
+  } catch (err) {
+    throw Error(`Error reading credentials file: ${err}`);
+  }
+  let opts: OAuth2ClientOptions = {};
+  opts.clientId = credentials.installed.client_id;
+  opts.clientSecret = credentials.installed.client_secret;
+  opts.redirectUri = credentials.installed.redirect_uris[0];
+  return opts;
 }
