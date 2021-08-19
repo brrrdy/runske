@@ -1,7 +1,6 @@
 import * as fs from 'fs';
 import * as readlineSync from 'readline-sync';
 import { google, sheets_v4 } from 'googleapis';
-import { AuthPlus } from 'googleapis-common';
 import { OAuth2Client, OAuth2ClientOptions } from 'google-auth-library';
 import { GetTokenResponse } from 'google-auth-library/build/src/auth/oauth2client';
 
@@ -10,7 +9,6 @@ const SCOPES: string[] = ['https://www.googleapis.com/auth/spreadsheets.readonly
 const TOKEN_PATH: string = 'token.json';
 
 const sheets: sheets_v4.Sheets = google.sheets('v4');
-const auth: AuthPlus = google.auth;
 
 const authOptions: OAuth2ClientOptions = getAuthOptions();
 const authClient: OAuth2Client = new OAuth2Client(authOptions);
