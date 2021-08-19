@@ -13,11 +13,19 @@ const sheets: sheets_v4.Sheets = google.sheets('v4');
 const authOptions: OAuth2ClientOptions = getAuthOptions();
 const authClient: OAuth2Client = new OAuth2Client(authOptions);
 
+const sheetIdTest: string = '10jSMRIG9nwRppaXE7Hi8VHVRZe8Cd3p2mBN7ZdfJ_RQ';
+const sheetRangesTest: string[] = [
+  'Distinctions!A2:C',
+  'Passions!A2:C',
+  'Adversities!A2:C',
+  'Anxieties!A2:C',
+];
+
 async function main () {
   // Get a new auth client, send the request with the authorized client
   authorize()
     .then(() => {
-      sendRequest(buildRequest())
+      sendRequest(buildRequest(authClient, sheetIdTest, sheetRangesTest))
         .then(handleResponse);
     });
 }
@@ -31,17 +39,12 @@ async function sendRequest(request) : Promise<sheets_v4.Params$Resource$Spreadsh
   return (await sheets.spreadsheets.values.batchGet(request)).data;
 }
 
-function buildRequest() : sheets_v4.Params$Resource$Spreadsheets$Values$Batchget {
+function buildRequest(authorizedClient: OAuth2Client, sheetId: string, sheetRanges: string[]) : sheets_v4.Params$Resource$Spreadsheets$Values$Batchget {
   // Build our authorized request
   const request: sheets_v4.Params$Resource$Spreadsheets$Values$Batchget = {
-    spreadsheetId: '10jSMRIG9nwRppaXE7Hi8VHVRZe8Cd3p2mBN7ZdfJ_RQ',
-    ranges: [
-      'Distinctions!A2:C',
-      'Passions!A2:C',
-      'Adversities!A2:C',
-      'Anxieties!A2:C',
-    ],
-    auth: authClient,
+    spreadsheetId: sheetId,
+    ranges: sheetRanges,
+    auth: authorizedClient,
   }
   return request;
 }
