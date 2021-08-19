@@ -49,7 +49,7 @@ function buildRequest() : sheets_v4.Params$Resource$Spreadsheets$Values$Batchget
 async function authorize() {
   // Try to get existing authorization token from file
   try {
-    let authToken = JSON.parse(fs.readFileSync('token.json').toString());
+    let authToken = JSON.parse(fs.readFileSync(TOKEN_PATH).toString());
     authClient.setCredentials(authToken);
   } catch (err) {
     // Try to get a new token
@@ -83,7 +83,7 @@ async function getNewToken() : Promise<GetTokenResponse> {
   return tokenResponse;
 }
 
-function getAuthOptions() {
+function getAuthOptions() : OAuth2ClientOptions {
   let credentials: any;
   try {
     credentials = JSON.parse(fs.readFileSync('credentials.json').toString());
