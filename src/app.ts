@@ -70,14 +70,19 @@ async function getNewToken() : Promise<GetTokenResponse> {
 
   let userCode: string = readlineSync.question(`Enter the code here:`);
 
-  return authClient.getToken(userCode)
+  const tokenResponse: Promise<GetTokenResponse> = authClient.getToken(userCode)
     .then((tokenResponse) => {
-      //TODO: store token in file 'token.json'
+      fs.writeFile(TOKEN_PATH, JSON.stringify(tokenResponse.tokens), (err) => {
+        if (err) return console.error(err);
+        console.log(`Token stored to '${TOKEN_PATH}'`);
+      });
       return tokenResponse;
     })
     .catch((err) => {
       throw new Error(err);
     });
+
+  return tokenResponse;
 }
 
 function getAuthOptions() {
